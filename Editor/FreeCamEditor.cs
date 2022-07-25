@@ -63,7 +63,8 @@ public class FreeCamPersistHandler {
     }
 }
 
-public class FreeCamEditor: EditorWindow {
+[CustomEditor(typeof(FreeCam))]
+public class FreeCamEditor: Editor {
 
     //default freecam prefab
     public GameObject freeCamPrefab;
@@ -85,11 +86,7 @@ public class FreeCamEditor: EditorWindow {
     public float zoomSensitivity = 2f;
     public float fastZoomSensitivity = 5f;
 
-    [MenuItem("NotAKid/FreeCam", false, 20)]
-    public static void ShowWindow() {
-        GetWindow < FreeCamEditor > (false, "FreeCam Editor", true);
-    }
-    private void OnGUI() {
+    public override void OnInspectorGUI() {
 
         GUIStyle box = GUI.skin.GetStyle("box");
 
