@@ -12,7 +12,6 @@ GameObject:
   - component: {fileID: 4957290260345327912}
   - component: {fileID: 4957290260345327831}
   - component: {fileID: 4957290260345327914}
-  - component: {fileID: 753223025}
   m_Layer: 0
   m_Name: FreeCam
   m_TagString: MainCamera
@@ -27,8 +26,8 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4957290260345327830}
-  m_LocalRotation: {x: 0, y: 1, z: 0, w: 0}
-  m_LocalPosition: {x: 0, y: 1, z: 1.5}
+  m_LocalRotation: {x: 0.0077131987, y: 0.93606716, z: -0.020562079, w: 0.3511353}
+  m_LocalPosition: {x: -0.2992167, y: 0.6550104, z: 0.32434306}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
@@ -102,18 +101,7 @@ MonoBehaviour:
   freeLookSensitivity: 3
   zoomSensitivity: 2
   fastZoomSensitivity: 5
-  shouldPersist: 0
-  autoFixCamPriority: 0
-  useSceneViewCam: 0
---- !u!114 &753223025
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4957290260345327830}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a420fb3b479550140a1e7afbbfddd99d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
+  persistFromPlayMode: 0
+  autoFixPhysBoneHelper: 0
+  startFromSceneView: 0
+  contactTesting: 0

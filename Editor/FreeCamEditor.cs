@@ -35,26 +35,26 @@ public class FreeCamPersistHandler {
         } else {
             switch (state) {
             case PlayModeStateChange.ExitingPlayMode:
-                if (freeCamScript.shouldPersist) {
+                if (freeCamScript.persistFromPlayMode) {
                     persistPos = freeCam.transform.position;
                     persistRot = freeCam.transform.rotation;
                 }
                 break;
             case PlayModeStateChange.EnteredEditMode:
-                if (freeCamScript.shouldPersist) {
+                if (freeCamScript.persistFromPlayMode) {
                     freeCam.transform.position = persistPos;
                     freeCam.transform.rotation = persistRot;
                 }
                 break;
             case PlayModeStateChange.ExitingEditMode:
-                if (freeCamScript.useSceneViewCam) {
+                if (freeCamScript.startFromSceneView) {
                     SceneView sceneCam = SceneView.lastActiveSceneView;
                     freeCam.transform.position = sceneCam.camera.transform.position;
                     freeCam.transform.rotation = sceneCam.camera.transform.rotation;
                 }
                 break;
             case PlayModeStateChange.EnteredPlayMode:
-                if (freeCamScript.autoFixCamPriority) {
+                if (freeCamScript.autoFixPhysBoneHelper) {
                     FreeCamEditor.FixCamPriority(freeCamScript);
                 }
                 break;
@@ -66,96 +66,67 @@ public class FreeCamPersistHandler {
 [CustomEditor(typeof(FreeCam))]
 public class FreeCamEditor: Editor {
 
-    //default freecam prefab
-    public GameObject freeCamPrefab;
+    //avatardynamics
+    private SerializedProperty contactTesting;
+    private SerializedProperty autoFixPhysBoneHelper;
 
-    //input
-    private GameObject activeFreeCam;
-
-    //vars
-    bool freeCamEnabled = false;
-    bool useADContactTester = false;
-    bool shouldPersist = false;
-    bool autoFixCamPriority = false;
-    bool useSceneViewCam = false;
+    //persistance
+    private SerializedProperty startFromSceneView;
+    private SerializedProperty persistFromPlayMode;
 
     //freecam config
-    public float movementSpeed = 2f;
-    public float fastMovementSpeed = 5f;
-    public float freeLookSensitivity = 3f;
-    public float zoomSensitivity = 2f;
-    public float fastZoomSensitivity = 5f;
+    private SerializedProperty movementSpeed;
+    private SerializedProperty fastMovementSpeed;
+    private SerializedProperty freeLookSensitivity;
+    private SerializedProperty zoomSensitivity;
+    private SerializedProperty fastZoomSensitivity;
+
+    private void OnEnable() {
+        //avatardynamics
+        contactTesting = serializedObject.FindProperty("contactTesting");
+        autoFixPhysBoneHelper = serializedObject.FindProperty("autoFixPhysBoneHelper");
+        //persistance
+        persistFromPlayMode = serializedObject.FindProperty("persistFromPlayMode");
+        startFromSceneView = serializedObject.FindProperty("startFromSceneView");
+        //configuration
+        movementSpeed = serializedObject.FindProperty("movementSpeed");
+        fastMovementSpeed = serializedObject.FindProperty("fastMovementSpeed");
+        freeLookSensitivity = serializedObject.FindProperty("freeLookSensitivity");
+        zoomSensitivity = serializedObject.FindProperty("zoomSensitivity");
+        fastZoomSensitivity = serializedObject.FindProperty("fastZoomSensitivity");
+    }
 
     public override void OnInspectorGUI() {
+        serializedObject.UpdateIfDirtyOrScript();
 
         GUIStyle box = GUI.skin.GetStyle("box");
 
-        using(new EditorGUI.DisabledScope(freeCamEnabled == false)) {
-            EditorGUIUtility.labelWidth = 100;
-            activeFreeCam = EditorGUILayout.ObjectField("In Scene:", activeFreeCam, typeof (GameObject), true) as GameObject;
-            EditorGUIUtility.labelWidth = 0;
-        }
-
-        //add freeCam to scene
-        using(new EditorGUI.DisabledScope(activeFreeCam != null)) {
-            if (GUILayout.Button("Add FreeCam to Scene")) {
-                if (!CheckForExisting()) {
-                    activeFreeCam = Instantiate(freeCamPrefab, new Vector3(0f, 1f, 1.5f), new Quaternion(0f, 180f, 0f, 0f));
-                    activeFreeCam.transform.SetSiblingIndex(0);
-                    activeFreeCam.name = "FreeCam";
-                }
-            }
-        }
-
         GUILayout.Label("FreeCam Configuration", "boldlabel");
         using(new GUILayout.VerticalScope(box)) {
-            movementSpeed = EditorGUILayout.FloatField("Movement Speed", movementSpeed);
-            fastMovementSpeed = EditorGUILayout.FloatField("Fast Movement Speed", fastMovementSpeed);
-            freeLookSensitivity = EditorGUILayout.FloatField("Free Look Sensitivity", freeLookSensitivity);
-            zoomSensitivity = EditorGUILayout.FloatField("Zoom Sensitivity", zoomSensitivity);
-            fastZoomSensitivity = EditorGUILayout.FloatField("Fast Zoom Sensitivity", fastZoomSensitivity);
+            EditorGUILayout.PropertyField(movementSpeed);
+            EditorGUILayout.PropertyField(fastMovementSpeed);
+            EditorGUILayout.PropertyField(freeLookSensitivity);
+            EditorGUILayout.PropertyField(zoomSensitivity);
+            EditorGUILayout.PropertyField(fastZoomSensitivity);
         }
 
         GUILayout.Label("PlayMode Persistance", "boldlabel");
         using(new GUILayout.VerticalScope(box)) {
             //location persist button
-            useSceneViewCam = EditorGUILayout.Toggle("Start From SceneView", useSceneViewCam);
-            shouldPersist = EditorGUILayout.Toggle("Persist From PlayMode", shouldPersist);
+            EditorGUILayout.PropertyField(startFromSceneView);
+            EditorGUILayout.PropertyField(persistFromPlayMode);
         }
 
         GUILayout.Label("Avatar Dynamics", "boldlabel");
         using(new GUILayout.VerticalScope(box)) {
             //ADContactTester button
-            useADContactTester = EditorGUILayout.Toggle("Basic Contact Testing", useADContactTester);
+            EditorGUILayout.PropertyField(contactTesting);
             EditorGUILayout.HelpBox("Allows you to activate contact receivers via mouse click from GameView! No proximity or capsule support as of yet.", MessageType.Info);
-            autoFixCamPriority = EditorGUILayout.Toggle("Autofix PhysBone Helper", autoFixCamPriority);
+            EditorGUILayout.PropertyField(autoFixPhysBoneHelper);
             EditorGUILayout.HelpBox("Temporarily disables all other cameras while regenerating PhysBoneGrabHelper to guarantee FreeCam takes priority.", MessageType.Info);
         }
 
-        //sync all changes to FreeCam script
-        if (GUI.changed) {
-            FreeCam activeFreeCamScript = activeFreeCam.GetComponent < FreeCam > ();
-            ADContactTester activeContactTester = activeFreeCam.GetComponent < ADContactTester > ();
-            activeFreeCamScript.movementSpeed = movementSpeed;
-            activeFreeCamScript.fastMovementSpeed = fastMovementSpeed;
-            activeFreeCamScript.freeLookSensitivity = freeLookSensitivity;
-            activeFreeCamScript.zoomSensitivity = zoomSensitivity;
-            activeFreeCamScript.fastZoomSensitivity = fastZoomSensitivity;
-            activeFreeCamScript.shouldPersist = shouldPersist;
-            activeFreeCamScript.autoFixCamPriority = autoFixCamPriority;
-            activeFreeCamScript.useSceneViewCam = useSceneViewCam;
-            activeContactTester.enabled = useADContactTester;
-        }
-    }
-
-    private bool CheckForExisting() {
-        FreeCam[] freecamscripts = GameObject.FindObjectsOfType < FreeCam > ();
-        if (freecamscripts.Count() == 1) {
-            activeFreeCam = freecamscripts[0].gameObject;
-            Debug.Log("[FreeCamEditor] Found existing FreeCam script in Scene!");
-            return true;
-        }
-        return false;
+        serializedObject.ApplyModifiedProperties();
     }
 
     public static void FixCamPriority(FreeCam activeFreeCamScript) {

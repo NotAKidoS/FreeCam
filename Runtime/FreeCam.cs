@@ -49,19 +49,21 @@ public class FreeCam: MonoBehaviour {
     /// </summary>
     private bool looking = false;
 
-    public bool shouldPersist = false;
-    public bool autoFixCamPriority = false;
-    public bool useSceneViewCam = false;
+    public bool persistFromPlayMode = false;
+    public bool autoFixPhysBoneHelper = false;
+    public bool startFromSceneView = false;
+    public bool contactTesting = false;
 
-    private Camera activeCamera;
+    private Camera currentCamera;
+    private VRC.SDK3.Dynamics.Contact.Components.VRCContactReceiver currentContact;
 
     void Start() {
-        activeCamera = GetComponent < Camera > ();
+        currentCamera = GetComponent < Camera > ();
     }
 
     void Update() {
 
-        var view = activeCamera.ScreenToViewportPoint(Input.mousePosition);
+        var view = currentCamera.ScreenToViewportPoint(Input.mousePosition);
         var isOutside = view.x < 0 || view.x > 1 || view.y < 0 || view.y > 1;
 
         if (!isOutside) {
@@ -118,11 +120,22 @@ public class FreeCam: MonoBehaviour {
             } else if (Input.GetKeyUp(KeyCode.Mouse1)) {
                 StopLooking();
             }
+
+            if (Input.GetKeyDown(KeyCode.Mouse0))
+            {
+                AttemptClick();
+            }
+            else if (Input.GetKeyUp(KeyCode.Mouse0))
+            {
+                AttemptReleaseClick();
+            }
+
         }
     }
 
     void OnDisable() {
         StopLooking();
+        AttemptReleaseClick();
     }
 
     /// <summary>
@@ -143,6 +156,57 @@ public class FreeCam: MonoBehaviour {
         Cursor.lockState = CursorLockMode.None;
     }
 
+    //stolen from the internet
+    bool hit_sphere(Vector3 center, float radius, Ray r)
+    {
+        Vector3 oc = r.origin - center;
+        float a = Vector3.Dot(r.direction, r.direction);
+        float b = 2.0f * Vector3.Dot(oc, r.direction);
+        float c = Vector3.Dot(oc,oc) - radius*radius;
+        float discriminant = b*b - 4*a*c;
+        return (discriminant>0);
+    }
+
+    public void AttemptClick()
+    {
+        if (contactTesting) {
+            if (currentContact == null) {
+                //get all active contacts in scene 
+                VRC.SDK3.Dynamics.Contact.Components.VRCContactReceiver[] contactReceivers = GameObject.FindObjectsOfType<VRC.SDK3.Dynamics.Contact.Components.VRCContactReceiver>();
+                //get mouse raycast
+                Ray mouseRay = currentCamera.ScreenPointToRay (Input.mousePosition);
+                //loop through every contact and check if one collides
+                foreach (VRC.SDK3.Dynamics.Contact.Components.VRCContactReceiver contact in contactReceivers)
+                {
+                    //convert contact local pos to world pos
+                    var globalPos = contact.position + contact.gameObject.transform.position;
+                    if ( hit_sphere(globalPos, contact.radius, mouseRay) ) {
+                        //take control of contact
+                        contact.paramValue = 1f;
+                        contact.SetParameter(1f);
+                        contact.paramAccess.floatVal = 1f;
+                        currentContact = contact;
+                        Debug.Log("[ADContactTester] Taken paramAccess");
+                    }
+                }
+            }
+        }
+    }
+
+    public void AttemptReleaseClick()
+    {
+        if (currentContact != null) {
+            //release control
+            currentContact.paramValue = 0f;
+            currentContact.SetParameter(0f);
+            currentContact.paramAccess.floatVal = 0f;
+            currentContact = null;
+            Debug.Log("[ADContactTester] Released paramAccess");
+        }
+    }
+
+    //camera priority fix
+
     public void ResetCams() {
         StartCoroutine(ResetAllCameras());
     }
@@ -151,7 +215,7 @@ public class FreeCam: MonoBehaviour {
         //disable all cameras but self
         List < Camera > alteredCamList = new List < Camera > ();
         foreach(Camera cam in Camera.allCameras) {
-            if (cam != activeCamera) {
+            if (cam != currentCamera) {
                 if (cam.isActiveAndEnabled) {
                     cam.enabled = false;
                     alteredCamList.Add(cam);
