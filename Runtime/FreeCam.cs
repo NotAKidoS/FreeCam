@@ -18,8 +18,7 @@ using UnityEngine;
 ///	mouse			- free look / rotation
 ///     
 /// </summary>
-public class FreeCam : MonoBehaviour
-{
+public class FreeCam: MonoBehaviour {
     /// <summary>
     /// Normal speed of camera movement.
     /// </summary>
@@ -56,13 +55,11 @@ public class FreeCam : MonoBehaviour
 
     private Camera activeCamera;
 
-    void Start()
-    {
-        activeCamera = GetComponent<Camera>();
+    void Start() {
+        activeCamera = GetComponent < Camera > ();
     }
 
-    void Update()
-    {
+    void Update() {
 
         var view = activeCamera.ScreenToViewportPoint(Input.mousePosition);
         var isOutside = view.x < 0 || view.x > 1 || view.y < 0 || view.y > 1;
@@ -72,81 +69,66 @@ public class FreeCam : MonoBehaviour
             var fastMode = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
             var movementSpeed = fastMode ? this.fastMovementSpeed : this.movementSpeed;
 
-            if (Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.LeftArrow))
-            {
+            if (Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.LeftArrow)) {
                 transform.position = transform.position + (-transform.right * movementSpeed * Time.deltaTime);
             }
 
-            if (Input.GetKey(KeyCode.D) || Input.GetKey(KeyCode.RightArrow))
-            {
+            if (Input.GetKey(KeyCode.D) || Input.GetKey(KeyCode.RightArrow)) {
                 transform.position = transform.position + (transform.right * movementSpeed * Time.deltaTime);
             }
 
-            if (Input.GetKey(KeyCode.W) || Input.GetKey(KeyCode.UpArrow))
-            {
+            if (Input.GetKey(KeyCode.W) || Input.GetKey(KeyCode.UpArrow)) {
                 transform.position = transform.position + (transform.forward * movementSpeed * Time.deltaTime);
             }
 
-            if (Input.GetKey(KeyCode.S) || Input.GetKey(KeyCode.DownArrow))
-            {
+            if (Input.GetKey(KeyCode.S) || Input.GetKey(KeyCode.DownArrow)) {
                 transform.position = transform.position + (-transform.forward * movementSpeed * Time.deltaTime);
             }
 
-            if (Input.GetKey(KeyCode.E))
-            {
+            if (Input.GetKey(KeyCode.E)) {
                 transform.position = transform.position + (transform.up * movementSpeed * Time.deltaTime);
             }
 
-            if (Input.GetKey(KeyCode.Q))
-            {
+            if (Input.GetKey(KeyCode.Q)) {
                 transform.position = transform.position + (-transform.up * movementSpeed * Time.deltaTime);
             }
 
-            if (Input.GetKey(KeyCode.R) || Input.GetKey(KeyCode.PageUp))
-            {
+            if (Input.GetKey(KeyCode.R) || Input.GetKey(KeyCode.PageUp)) {
                 transform.position = transform.position + (Vector3.up * movementSpeed * Time.deltaTime);
             }
 
-            if (Input.GetKey(KeyCode.F) || Input.GetKey(KeyCode.PageDown))
-            {
+            if (Input.GetKey(KeyCode.F) || Input.GetKey(KeyCode.PageDown)) {
                 transform.position = transform.position + (-Vector3.up * movementSpeed * Time.deltaTime);
             }
 
-            if (looking)
-            {
+            if (looking) {
                 float newRotationX = transform.localEulerAngles.y + Input.GetAxis("Mouse X") * freeLookSensitivity;
                 float newRotationY = transform.localEulerAngles.x - Input.GetAxis("Mouse Y") * freeLookSensitivity;
                 transform.localEulerAngles = new Vector3(newRotationY, newRotationX, 0f);
             }
 
             float axis = Input.GetAxis("Mouse ScrollWheel");
-            if (axis != 0)
-            {
+            if (axis != 0) {
                 var zoomSensitivity = fastMode ? this.fastZoomSensitivity : this.zoomSensitivity;
                 transform.position = transform.position + transform.forward * axis * zoomSensitivity;
             }
 
-            if (Input.GetKeyDown(KeyCode.Mouse1))
-            {
+            if (Input.GetKeyDown(KeyCode.Mouse1)) {
                 StartLooking();
-            }
-            else if (Input.GetKeyUp(KeyCode.Mouse1))
-            {
+            } else if (Input.GetKeyUp(KeyCode.Mouse1)) {
                 StopLooking();
             }
         }
     }
 
-    void OnDisable()
-    {
+    void OnDisable() {
         StopLooking();
     }
 
     /// <summary>
     /// Enable free looking.
     /// </summary>
-    public void StartLooking()
-    {
+    public void StartLooking() {
         looking = true;
         Cursor.visible = false;
         Cursor.lockState = CursorLockMode.Locked;
@@ -155,43 +137,37 @@ public class FreeCam : MonoBehaviour
     /// <summary>
     /// Disable free looking.
     /// </summary>
-    public void StopLooking()
-    {
+    public void StopLooking() {
         looking = false;
         Cursor.visible = true;
         Cursor.lockState = CursorLockMode.None;
     }
 
-    public void ResetCams()
-    {
-        StartCoroutine( ResetAllCameras() );
+    public void ResetCams() {
+        StartCoroutine(ResetAllCameras());
     }
 
-    IEnumerator ResetAllCameras()
-    {
+    IEnumerator ResetAllCameras() {
         //disable all cameras but self
-        List<Camera> alteredCamList = new List<Camera>();
-        foreach (Camera cam in Camera.allCameras)
-        {
-            if (cam != activeCamera)
-            {
-                if (cam.isActiveAndEnabled)
-                {
+        List < Camera > alteredCamList = new List < Camera > ();
+        foreach(Camera cam in Camera.allCameras) {
+            if (cam != activeCamera) {
+                if (cam.isActiveAndEnabled) {
                     cam.enabled = false;
                     alteredCamList.Add(cam);
-                }	
+                }
             }
         }
         Debug.Log("[FreeCam] Disabled all active cameras but self.");
-    //this is to wait for the vrc sdk to select freecam
-    yield return new WaitForSeconds(0.1f);
+        //this is to wait for the vrc sdk to select freecam
+        yield
+        return new WaitForSeconds(0.1f);
 
         //reenable the other cameras
-        foreach (Camera cam in alteredCamList)
-        {
+        foreach(Camera cam in alteredCamList) {
             cam.enabled = true;
         }
-    
+
         Debug.Log("[FreeCam] Reenabled all modified cameras!");
     }
 
