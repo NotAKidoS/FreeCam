@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -22,12 +23,12 @@ public class FreeCam : MonoBehaviour
     /// <summary>
     /// Normal speed of camera movement.
     /// </summary>
-    public float movementSpeed = 10f;
+    public float movementSpeed = 2f;
 
     /// <summary>
     /// Speed of camera movement when shift is held down,
     /// </summary>
-    public float fastMovementSpeed = 100f;
+    public float fastMovementSpeed = 5f;
 
     /// <summary>
     /// Sensitivity for free look.
@@ -37,84 +38,102 @@ public class FreeCam : MonoBehaviour
     /// <summary>
     /// Amount to zoom the camera when using the mouse wheel.
     /// </summary>
-    public float zoomSensitivity = 10f;
+    public float zoomSensitivity = 2f;
 
     /// <summary>
     /// Amount to zoom the camera when using the mouse wheel (fast mode).
     /// </summary>
-    public float fastZoomSensitivity = 50f;
+    public float fastZoomSensitivity = 5f;
 
     /// <summary>
     /// Set to true when free looking (on right mouse button).
     /// </summary>
     private bool looking = false;
 
+    public bool shouldPersist = false;
+    public bool autoFixCamPriority = false;
+    public bool useSceneViewCam = false;
+
+    private Camera activeCamera;
+
+    void Start()
+    {
+        activeCamera = GetComponent<Camera>();
+    }
+
     void Update()
     {
-        var fastMode = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
-        var movementSpeed = fastMode ? this.fastMovementSpeed : this.movementSpeed;
 
-        if (Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.LeftArrow))
-        {
-            transform.position = transform.position + (-transform.right * movementSpeed * Time.deltaTime);
-        }
+        var view = activeCamera.ScreenToViewportPoint(Input.mousePosition);
+        var isOutside = view.x < 0 || view.x > 1 || view.y < 0 || view.y > 1;
 
-        if (Input.GetKey(KeyCode.D) || Input.GetKey(KeyCode.RightArrow))
-        {
-            transform.position = transform.position + (transform.right * movementSpeed * Time.deltaTime);
-        }
+        if (!isOutside) {
 
-        if (Input.GetKey(KeyCode.W) || Input.GetKey(KeyCode.UpArrow))
-        {
-            transform.position = transform.position + (transform.forward * movementSpeed * Time.deltaTime);
-        }
+            var fastMode = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
+            var movementSpeed = fastMode ? this.fastMovementSpeed : this.movementSpeed;
 
-        if (Input.GetKey(KeyCode.S) || Input.GetKey(KeyCode.DownArrow))
-        {
-            transform.position = transform.position + (-transform.forward * movementSpeed * Time.deltaTime);
-        }
+            if (Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.LeftArrow))
+            {
+                transform.position = transform.position + (-transform.right * movementSpeed * Time.deltaTime);
+            }
 
-        if (Input.GetKey(KeyCode.E))
-        {
-            transform.position = transform.position + (transform.up * movementSpeed * Time.deltaTime);
-        }
+            if (Input.GetKey(KeyCode.D) || Input.GetKey(KeyCode.RightArrow))
+            {
+                transform.position = transform.position + (transform.right * movementSpeed * Time.deltaTime);
+            }
 
-        if (Input.GetKey(KeyCode.Q))
-        {
-            transform.position = transform.position + (-transform.up * movementSpeed * Time.deltaTime);
-        }
+            if (Input.GetKey(KeyCode.W) || Input.GetKey(KeyCode.UpArrow))
+            {
+                transform.position = transform.position + (transform.forward * movementSpeed * Time.deltaTime);
+            }
 
-        if (Input.GetKey(KeyCode.R) || Input.GetKey(KeyCode.PageUp))
-        {
-            transform.position = transform.position + (Vector3.up * movementSpeed * Time.deltaTime);
-        }
+            if (Input.GetKey(KeyCode.S) || Input.GetKey(KeyCode.DownArrow))
+            {
+                transform.position = transform.position + (-transform.forward * movementSpeed * Time.deltaTime);
+            }
 
-        if (Input.GetKey(KeyCode.F) || Input.GetKey(KeyCode.PageDown))
-        {
-            transform.position = transform.position + (-Vector3.up * movementSpeed * Time.deltaTime);
-        }
+            if (Input.GetKey(KeyCode.E))
+            {
+                transform.position = transform.position + (transform.up * movementSpeed * Time.deltaTime);
+            }
 
-        if (looking)
-        {
-            float newRotationX = transform.localEulerAngles.y + Input.GetAxis("Mouse X") * freeLookSensitivity;
-            float newRotationY = transform.localEulerAngles.x - Input.GetAxis("Mouse Y") * freeLookSensitivity;
-            transform.localEulerAngles = new Vector3(newRotationY, newRotationX, 0f);
-        }
+            if (Input.GetKey(KeyCode.Q))
+            {
+                transform.position = transform.position + (-transform.up * movementSpeed * Time.deltaTime);
+            }
 
-        float axis = Input.GetAxis("Mouse ScrollWheel");
-        if (axis != 0)
-        {
-            var zoomSensitivity = fastMode ? this.fastZoomSensitivity : this.zoomSensitivity;
-            transform.position = transform.position + transform.forward * axis * zoomSensitivity;
-        }
+            if (Input.GetKey(KeyCode.R) || Input.GetKey(KeyCode.PageUp))
+            {
+                transform.position = transform.position + (Vector3.up * movementSpeed * Time.deltaTime);
+            }
 
-        if (Input.GetKeyDown(KeyCode.Mouse1))
-        {
-            StartLooking();
-        }
-        else if (Input.GetKeyUp(KeyCode.Mouse1))
-        {
-            StopLooking();
+            if (Input.GetKey(KeyCode.F) || Input.GetKey(KeyCode.PageDown))
+            {
+                transform.position = transform.position + (-Vector3.up * movementSpeed * Time.deltaTime);
+            }
+
+            if (looking)
+            {
+                float newRotationX = transform.localEulerAngles.y + Input.GetAxis("Mouse X") * freeLookSensitivity;
+                float newRotationY = transform.localEulerAngles.x - Input.GetAxis("Mouse Y") * freeLookSensitivity;
+                transform.localEulerAngles = new Vector3(newRotationY, newRotationX, 0f);
+            }
+
+            float axis = Input.GetAxis("Mouse ScrollWheel");
+            if (axis != 0)
+            {
+                var zoomSensitivity = fastMode ? this.fastZoomSensitivity : this.zoomSensitivity;
+                transform.position = transform.position + transform.forward * axis * zoomSensitivity;
+            }
+
+            if (Input.GetKeyDown(KeyCode.Mouse1))
+            {
+                StartLooking();
+            }
+            else if (Input.GetKeyUp(KeyCode.Mouse1))
+            {
+                StopLooking();
+            }
         }
     }
 
@@ -142,4 +161,38 @@ public class FreeCam : MonoBehaviour
         Cursor.visible = true;
         Cursor.lockState = CursorLockMode.None;
     }
+
+    public void ResetCams()
+    {
+        StartCoroutine( ResetAllCameras() );
+    }
+
+    IEnumerator ResetAllCameras()
+    {
+        //disable all cameras but self
+        List<Camera> alteredCamList = new List<Camera>();
+        foreach (Camera cam in Camera.allCameras)
+        {
+            if (cam != activeCamera)
+            {
+                if (cam.isActiveAndEnabled)
+                {
+                    cam.enabled = false;
+                    alteredCamList.Add(cam);
+                }	
+            }
+        }
+        Debug.Log("[FreeCam] Disabled all active cameras but self.");
+    //this is to wait for the vrc sdk to select freecam
+    yield return new WaitForSeconds(0.1f);
+
+        //reenable the other cameras
+        foreach (Camera cam in alteredCamList)
+        {
+            cam.enabled = true;
+        }
+    
+        Debug.Log("[FreeCam] Reenabled all modified cameras!");
+    }
+
 }

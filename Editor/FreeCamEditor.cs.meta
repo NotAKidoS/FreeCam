@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: 2a242e46241728c4e88e8c9a0ef5e4b1
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - m_ViewDataDictionary: {instanceID: 0}
+  - freeCamPrefab: {fileID: 4957290260345327830, guid: a2cd1a86621f5234d8ec6aa7afb83f59,
+      type: 3}
+  - camPreset: {instanceID: 0}
+  - freeCam: {instanceID: 0}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

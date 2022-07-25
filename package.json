@@ -1,21 +1,17 @@
 {
   "name": "com.notakidonsteam.freecam",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "displayName": "Free Cam",
-  "description": "Free cam script for the Game view tab. Modified version of Unity FreeCam by \rashleydavis.",
+  "description": "Free cam script for the Game view tab. Modified version of Unity FreeCam by ashleydavis for use with the VRChat Creator Companion.",
   "unity": "2019.4",
-  "documentationUrl": "https://example.com/",
-  "changelogUrl": "https://example.com/changelog.html",
-  "licensesUrl": "https://example.com/licensing.html",
-  "keywords": [
-    "FreeCam",
-    "Free Cam",
-    "Camera"
-  ],
-  "author": {
-    "name": "NotAKid",
-    "email": "",
-    "url": ""
+
+  "url" : "https://github.com/NotAKidOnSteam/FreeCam.git?path=/",
+
+  "legacyFolders" : {
+    "Assets\\Tools\\FreeCam" : "b7e22c1fda6869d4a974a16f51600e8a"
   },
-  "type": "tool"
+  "legacyFiles" : {
+    "FreeCam.cs" : "bdd70cfd94391f94bb959088337c91d6",
+    "FreeCam.prefab" : "a2cd1a86621f5234d8ec6aa7afb83f59"
+  }
 }
